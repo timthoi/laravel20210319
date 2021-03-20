@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `is_deleted` TINYINT NOT NULL DEFAULT '0' AFTER `updated_at`;
