@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserCreateRequest;
+use App\Http\Requests\UserUpdateRequest;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -18,35 +19,33 @@ use Illuminate\Support\Facades\Validator;
 class UserController extends BaseController {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     
-    
     /**
      * Get pagination users
      *
      * @return User[]|\Illuminate\Database\Eloquent\Collection
      */
     public function index(Request $request) {
-        $search = $request->input('search');
-        $all = $request->all();
+        $userModel = new User();
+        $selectRaw = "first_name, last_name, phone, password";
+        $whereRaw = 'is_deleted <> 1 AND id>5';
         
-        // $users = DB::table('users')->paginate(2);
-        //$users = DB::table('users')->simplePaginate(2);
-        //  $users = User::where('first_name', '>', 20)->paginate(2);
-        $users = User::where('is_deleted', '!=', '1')->paginate(100);
+        
+        $users = $userModel->getListUsers($selectRaw);
         
         return $users;
-        //
-        //        // ket noi database: truy xuat users get all toan bo thong tin cua users
-        //        return User::all();
     }
     
     /**
+     * Get detail user
+     *
      * @param $id
      *
      * @return mixed
      */
     public function show($id) {
         // ket noi database: truy xuat users get user theo user id
-        $users = User::find($id);
+        $userModel = new User();
+        $users = $userModel->getDetailUser($id);
         
         // Neu khong tim thhay
         if (empty($users)) {
@@ -71,8 +70,8 @@ class UserController extends BaseController {
      *
      * @return \Illuminate\Contracts\Routing\ResponseFactory|Response
      */
-    public function store(Request $request) {
-
+    public function store(UserCreateRequest $request) {
+        
         $user = User::create([
                                  'first_name' => $request->input('first_name'),
                                  'last_name' => $request->input('last_name'),
@@ -86,23 +85,31 @@ class UserController extends BaseController {
     
     /**
      * @param  Request  $request
-     * @param $id
+     * @param  int  $id
      *
-     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response
+     * @return array
      */
-    public function update(Request $request, $id) {
+    public function update(UserUpdateRequest $request, $id) {
         // instance user
         $user = User::find($id);
         
-        $user->update([
-                          'first_name' => $request->input('first_name'),
-                          'last_name' => $request->input('last_name'),
-                          'email' => $request->input('email'),
-                          'phone' => $request->input('phone'),
-                          'password' => Hash::make($request->input('password'))
-                      ]);
+        // Not find user
+        if (empty($user)) {
+            return [
+                'code' => 0,
+                "data" => []
+            ];
+        }
+    
+        $dataRequest = $request->only('first_name', 'last_name', 'email', 'phone', 'password');
+     
+        $user->update($dataRequest);
         
-        return response($user, Response::HTTP_ACCEPTED);
+        return [
+            'code' => 1,
+            "data" => [$user]
+        ];
+        
     }
     
     /**
@@ -114,9 +121,9 @@ class UserController extends BaseController {
      * @return mixed
      */
     public function destroy($id) {
-//        User::destroy($id);
-//
-//        return User::find($id);
+        //        User::destroy($id);
+        //
+        //        return User::find($id);
     }
     
     /**
@@ -130,11 +137,11 @@ class UserController extends BaseController {
     public function softDelete($id) {
         // instance user
         $user = User::find($id);
-    
+        
         $user->update([
-                'is_deleted' => 1
-        ]);
-    
+                          'is_deleted' => 1
+                      ]);
+        
         return response($user, Response::HTTP_ACCEPTED);
         
         //        User::destroy($id);
