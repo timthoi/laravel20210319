@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Pagination\Paginator;
 
-class User extends Authenticatable {
+class Title extends Authenticatable {
     use HasApiTokens, HasFactory, Notifiable;
     
     /**
@@ -18,18 +18,11 @@ class User extends Authenticatable {
      *
      * @var array
      */
-    protected $table = 'users';
-    protected $primaryKey = 'user_id';
+    protected $table = 'titles';
+    protected $primaryKey = 'title_id';
     protected $fillable = [
-        'first_name',
-        'last_name',
-        'phone',
-        'email',
-        'password',
-        'dob',
         'title_id',
-        'gender_id',
-        'country_id',
+        'title_name',
         'created_by',
         'created_date',
         'modified_by',
@@ -42,7 +35,7 @@ class User extends Authenticatable {
     protected function getTableInfo() {
         $result = [
             'name' => $this->table,
-            'alias' => $this->table . ' as u',
+            'alias' => $this->table . ' as t',
             'primaryKey' => $this->primaryKey,
         ];
         
@@ -50,19 +43,16 @@ class User extends Authenticatable {
     }
     
     /**
-     * Get detail user
+     * Get detail title
      *
      * @param  array  $selectRawQuery
      * @param  array  $whereRawQuery
      * @param  array  $orderByRawQuery
      *
-     * @return array
+     * @return mixed
      */
-    public function getDetailUser($selectRawQuery = [], $whereRawQuery = [], $orderByRawQuery = []) {
-        $query = DB::table($this->getTableInfo()->alias)
-            ->leftJoin('user_titles as ut', 'ut.user_id', '=', 'u.user_id')
-            ->leftJoin('titles as t', 't.title_id', '=', 'u.title_id')
-            ->groupBy('u.user_id');
+    public function getDetailTitle($selectRawQuery = [], $whereRawQuery = [], $orderByRawQuery = []) {
+        $query = DB::table($this->getTableInfo()->alias);
         
         foreach ($selectRawQuery as $itm) {
             $query->selectRaw($itm['strRaw'], $itm['params']);
@@ -76,7 +66,7 @@ class User extends Authenticatable {
         
         $dataDetail = $query->first();
         
-        return collect($dataDetail)->toArray();
+        return $dataDetail;
     }
     
     /**
@@ -87,7 +77,7 @@ class User extends Authenticatable {
      * @param array $orderByRawQuery
      * @return mixed
      */
-    public function getListUsers($selectRawQuery = [], $whereRawQuery = [], $orderByRawQuery = []) {
+    public function getListTitles($selectRawQuery = [], $whereRawQuery = [], $orderByRawQuery = []) {
         $query = DB::table($this->getTableInfo()->alias);
         
         foreach ($selectRawQuery as $itm) {
@@ -117,7 +107,7 @@ class User extends Authenticatable {
      *
      * @return array                [description]
      */
-    public function getListUsersPagination($selectRawQuery = [], $whereRawQuery = [], $orderByRawQuery = [], $dataPagination = []) {
+    public function getListTitlesPagination($selectRawQuery = [], $whereRawQuery = [], $orderByRawQuery = [], $dataPagination = []) {
         
         $query = DB::table($this->getTableInfo()->alias);
         foreach ($selectRawQuery as $itm) {
