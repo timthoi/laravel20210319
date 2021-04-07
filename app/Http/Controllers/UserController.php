@@ -36,6 +36,22 @@ class UserController extends BaseController {
     }
     
     /**
+     * Lấy danh sách user cho user login chỉ bao gồm thông tin: first last_name
+     *
+     * @return User[]|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getLisLoginUsers(Request $request) {
+        
+        $userModel = new User();
+        $selectRaw = "first_name, last_name";
+        $whereRaw = 'is_deleted <> 1 AND id>5';
+        
+        $users = $userModel->getListUsers($selectRaw);
+        
+        return $users;
+    }
+    
+    /**
      * Get detail user
      *
      * @param $id
@@ -43,6 +59,7 @@ class UserController extends BaseController {
      * @return mixed
      */
     public function show($id) {
+        
         // ket noi database: truy xuat users get user theo user id
         $userModel = new User();
         $users = $userModel->getDetailUser($id);
@@ -64,6 +81,61 @@ class UserController extends BaseController {
         
         return $result;
     }
+    
+    /**
+     * Get detail user
+     *
+     * @param $id
+     *
+     * @return mixed
+     */
+    public function getInfoUser(Request $request) {
+        $result = [
+            'code' => 1,
+            "data" => [
+                "first_name" => "hoangnd1",
+                "last_name" => "nguyen1",
+                "phone" => "098712323",
+                "password" => '$2y$10$EEBSc5/PAZv0UcFdphwppekRXH3vQY/6RTEAb3HJ4nS7en4umXaFS',
+                'titles' =>[
+                    [
+                        "title_id" => 1,
+                        "title_name" => "Giam doc",
+                    ],
+                    [
+                        "title_id" => 2,
+                        "title_name" => "Chu tich hoi dong quna tri",
+                    ],
+                ]
+            ]
+        ];
+        
+        return $result;
+        
+        
+        $userId = $request->user()->id;
+        
+        $userModel = new User();
+        $users = $userModel->getDetailLoginUser($userId);
+        
+        // Neu khong tim thhay
+        if (empty($users)) {
+            return [
+                'code' => 0,
+                "data" => []
+            ];
+        }
+        
+        $result = [
+            'code' => 1,
+            "data" => [
+                $users
+            ]
+        ];
+        
+        return $result;
+    }
+    
     
     /**
      * @param  Request  $request
@@ -100,9 +172,9 @@ class UserController extends BaseController {
                 "data" => []
             ];
         }
-    
+        
         $dataRequest = $request->only('first_name', 'last_name', 'email', 'phone', 'password');
-     
+        
         $user->update($dataRequest);
         
         return [

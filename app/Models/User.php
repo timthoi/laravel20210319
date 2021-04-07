@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
     
     /**
      * The attributes that are mass assignable.
@@ -51,13 +52,8 @@ class User extends Authenticatable {
      * @return \Illuminate\Support\Collection
      */
     public function getListUsers() {
-        $selectRaw = "first_name, last_name, phone, password";
+        $selectRaw = "first_name, last_name";
         $whereRaw = 'is_deleted <> 1 AND id>5';
-        
-        
-        
-        
-        
         
         
         $query = DB::table($this->getTable())
@@ -87,6 +83,29 @@ class User extends Authenticatable {
         
 //        echo "<pre>";
 //        print_r($queryRawSQL);die;
+        
+        $users = $query->first();
+        
+        return $users;
+    }
+    
+    /**
+     * Get detail user
+     *
+     * @param int $id
+     * @return \Illuminate\Support\Collection
+     */
+    public function getDetailLoginUser(int $id) {
+        $query = DB::table($this->getTable())
+                   ->selectRaw("first_name, last_name, phone, password")
+                   ->whereRaw("id = ?", [$id])
+                   ->where('is_deleted', '<>', 1);
+        
+        
+        //        $queryRawSQL = $query->toSql();
+        
+        //        echo "<pre>";
+        //        print_r($queryRawSQL);die;
         
         $users = $query->first();
         
